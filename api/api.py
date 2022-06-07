@@ -11,7 +11,6 @@ from tensorflow.keras.models import Sequential,load_model,Model
 
 app = FastAPI()
 
-
 def onehote(sequence):
     '''Takes in entry a DNA sequence,
     Returns a One-Hot-Encoded matrix'''
