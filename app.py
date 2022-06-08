@@ -36,51 +36,53 @@ with st.sidebar:
 
 ### SIDEBAR BUTTON to navigate through pages ####
 with st.sidebar:
-    item_select = st.radio('Navigation', ('Introduction', 'Dataset', 'Preprocessing', 'Demo'))
+    item_select = st.radio('Navigation', ('Transformation', 'Demo'))
     st.write(item_select)
 
 
-### CODE FOR PAGE CONTEXTE ###
-if item_select == 'Introduction':
-    # contexte, definition et images
-    st.markdown("""
-        ## Introduction""")
+# ### CODE FOR PAGE CONTEXTE ###
+# if item_select == 'Introduction':
+#     # contexte, definition et images
+#     st.markdown("""
+#         ## Introduction""")
 
-    # photo viroid sur plante
-    st.markdown(""" 👉 A quoi ressemble un viroid sur une plante? """)
-    image = Image.open('images-streamlit/viroid-plant.jpeg')
-    st.image(image, caption='viroid-plant', use_column_width=False)
+#     # photo viroid sur plante
+#     st.markdown(""" 👉 A quoi ressemble un viroid sur une plante? """)
+#     image = Image.open('images-streamlit/viroid-plant.jpeg')
+#     st.image(image, caption='viroid-plant', use_column_width=False)
 
-    # image viroid
-    st.markdown(""" 👉 A quoi ressemble un viroid ?""")
-    image = Image.open('images-streamlit/viroid-image.png')
-    st.image(image, caption='viroid-image', use_column_width=True)
+#     # image viroid
+#     st.markdown(""" 👉 A quoi ressemble un viroid ?""")
+#     image = Image.open('images-streamlit/viroid-image.png')
+#     st.image(image, caption='viroid-image', use_column_width=True)
 
-    # image séquence ARN viroid
-    st.markdown(""" 👉 La traduction d'une séquence ARN sur un viroid?""")
-    image = Image.open('images-streamlit/GCAT viroid - forme.png')
-    st.image(image, caption='séquence ARN sur viroid', use_column_width=True)
+#     # image séquence ARN viroid
+#     st.markdown(""" 👉 La traduction d'une séquence ARN sur un viroid?""")
+#     image = Image.open('images-streamlit/GCAT viroid - forme.png')
+#     st.image(image, caption='séquence ARN sur viroid', use_column_width=True)
 
 
 ### CODE FOR PAGE DATA
-elif item_select == 'Dataset':
-    st.markdown("""## Dataset utilisé : viroids & virus""")
+# elif item_select == 'Dataset':
+#     st.markdown("""## Dataset utilisé : viroids & virus""")
 
-    # 3 petites infos sur les tableaux
-    col1, col2, col3 = st.columns(3)
-    col1.metric("tableau viroid 👇", "9397 lignes")
-    col2.metric("tableau virus 👇", "10000 lignes")
-    col3.metric("longueur moyenne 👇", "400 char")
+#     # 3 petites infos sur les tableaux
+#     col1, col2 = st.columns(2)
+#     col1.metric("tableau viroid 👇", "9397 lignes")
+#     col1.write("""Longueur entre 200 et 500, produit par des chercheurs en janvier 2022.
+#                Condensé de toutes les séquences viroids recensées ce jour.""")
+#     col2.metric("tableau virus 👇", "10000 lignes")
+#     col2.write("échantillons de longueur 500, dataset produit par le doctorant. Echantillons de séquences ARN de virus.")
 
-    # partie du dataframe
-    st.markdown("""### Echantillon random de 10 séquences du Dataset 🔎 """)
-    df = get_dataframe_data()
-    st.write(df.sample(n = 10))
+#     # partie du dataframe
+#     st.markdown("""### Echantillon random de 10 séquences du Dataset 🔎 """)
+#     df = get_dataframe_data()
+#     st.write(df.sample(n = 10))
 
 
 
 ### CODE FOR PAGE MODELE ####
-elif item_select == 'Preprocessing':
+if item_select == 'Transformation':
     st.markdown("""## 🖥️ Transformation des séquences en images pour l'algorithme""")
     st.markdown("""👉 On prend une séquence ARN :""")
     # ramenons qq formules ici pour la suite
@@ -97,7 +99,7 @@ elif item_select == 'Preprocessing':
     if col2.button('Generate sequence'):
             df = get_dataframe_data()
             random_result = df.sample(1).reset_index()
-            st.write(random_result[['Sequence']])
+            st.write(random_result['Sequence'][0])
 
     # image flèche 1
     col1, col2, col3 = st.columns(3)
@@ -105,7 +107,7 @@ elif item_select == 'Preprocessing':
 
     # liste de mots
     col1, col2, col3 = st.columns(3)
-    col1.markdown(""" 👉 On la coupe en mots de 4 lettres et on obtient la liste de tous les mots possibles : """)
+    col1.markdown(""" 👉 On la coupe en mots de 4 lettres et on obtient la liste de tous les mots : """)
     if random_result is not None:
         big_list_kmers = enc.list_kmers(random_result['Sequence'][0], 4)
         col2.write(", ".join(big_list_kmers[0:10])+ "...")
@@ -115,7 +117,7 @@ elif item_select == 'Preprocessing':
     col2.image(image, caption='', width=200)
 
     # button matrice
-    st.markdown(""" 👉 On met ces mots dans une matrice  :""")
+    st.markdown(""" 👉 On met tous les mots possibles dans une matrice  :""")
 
     # on fait une matrice des mots
     if random_result is not None:
@@ -135,10 +137,11 @@ elif item_select == 'Preprocessing':
         col1, col2, col3 = st.columns(3)
         col2.image(image, caption='', width=200)
         # on fait l'image
-        st.markdown(""" 👉 L'algorithme génère une image via cette matrice :""")
+        st.markdown(""" 👉 Voilà une représentation graphique de cette matrice :""")
         fig, ax = plt.subplots()
         plt.axis('off')
-        ax.imshow(matrix, cmap='viridis')
+        im = ax.imshow(matrix, cmap='viridis')
+        fig.colorbar(im, ax=ax)
         st.pyplot(fig)
 
 
@@ -154,16 +157,26 @@ else:
         response = requests.get(url, params=params)
         if response.status_code ==200:
             col1, col2 = st.columns(2)
-            viroid_resp = float(response.json())*100
+            viroid_resp = round(float(response.json())*100, 2)
             col1.write("""Probability of being a viroid:""")
             col2.write(f'{viroid_resp} %')
-            if float(viroid_resp) < 0.5:
-                st.markdown("""### That's not a viroid !""")
+            if float(viroid_resp/100) < 0.5:
+                col1.markdown("""### Result :""")
+                col2.markdown("""### That's not a viroid !""")
             else:
-                st.markdown("""### That's a viroid !""")
+                col1.markdown("""### Result :""")
+                col2.markdown("""### That's a viroid !""")
         else:
             st.write("error de Loup: ", response.status_code)
 
-
-# a quoi ca sert de transformer en image ? +> keep it simple
-#
+        # seq covid 19
+        st.text("")
+        st.text("")
+        st.text("")
+        st.text("")
+        st.text("")
+        st.text("")
+        st.text("")
+        col1, col2= st.columns(2)
+        col1.write(""" *En bonus, échantillon de la séquence du COVID :*""")
+        col1.write("""TGAGTACAGACACTGGTGTTGAACATGTTACCTTCTTCATCTACAATAAAATTGTTGATGAGCCTGAAGAACATGTCCAAATTCACACAATCGACGGTTCATCCGGAGTTGTTAATCCAGTAATGGAACCAATTTATGATGAACCGACGACGACTACTAGCGTGCCTTTGTAAGCACAAGCTGATGAGTACGAACTTATGTACTCATTCGTTTCGGAAGAGACAGGTACGTTAATAGTTAATAGCGTACTTCTTTTTCTTGCTTTCGTGGTATTCTTGCTAGTTACACTAGCCATCCTTACTGCGCTTCGATTGTGTGCGTACTGCTGCAATATTGTTAACGTGAGTCTTGTAAAACCTTCTTTTTACGTTTACTCTCGTGTTAAAAATCTGAATTCTTCTAGAGTTCCTGATCTTCTGGTCTAAACGAACTAAATATTATATTAGTTTTTCTGTTTGGAACTTTAATTTTAGCCATGGCAGATTCCAACGGTACTATT""")
